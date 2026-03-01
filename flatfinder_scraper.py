@@ -1,6 +1,6 @@
 import os, re, csv, logging, hashlib, asyncio, json
 from datetime import date
-from typing import Optional, List
+from typing import Optional, List, Any
 
 from pydantic import BaseModel
 from browser_use import Agent, Browser, BrowserConfig
@@ -633,6 +633,58 @@ def write_csv(listings):
     log.info(f"CSV  saved → {CSV_FILE}")
 
 
+# ── SUPABASE WRITER ───────────────────────────────────────────────────────────
+# The scraper authenticates to Supabase using the service-role key
+# (SUPABASE_SERVICE_KEY), which bypasses Row Level Security so the job can
+# upsert freely.  Read access for end-users is governed by the RLS policy
+# defined in supabase/migrations/001_create_listings.sql.
+
+def _get_supabase_client() -> Any:
+    """Return an authenticated Supabase client, or None if creds are missing."""
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_SERVICE_KEY")
+    if not url or not key:
+        return None
+    from supabase import create_client
+    return create_client(url, key)
+
+
+# Column mapping: our dict keys → Supabase table columns
+_COL_MAP = {
+    "ID": "id", "Source": "source", "Title": "title", "Price": "price",
+    "Bedrooms": "bedrooms", "Bathrooms": "bathrooms", "Type": "type",
+    "Neighbourhood": "neighbourhood", "Address": "address",
+    "Utilities": "utilities", "Pets": "pets", "TTC_Access": "ttc_access",
+    "Available": "available", "URL": "url", "Description": "description",
+    "Date_Scraped": "date_scraped",
+}
+
+_BATCH_SIZE = 200
+
+
+def write_supabase(listings: List[dict]) -> None:
+    client = _get_supabase_client()
+    if client is None:
+        log.info("Supabase: SUPABASE_URL / SUPABASE_SERVICE_KEY not set — skipping")
+        return
+
+    rows = [
+        {db_col: listing.get(py_key) for py_key, db_col in _COL_MAP.items()}
+        for listing in listings
+    ]
+
+    upserted = 0
+    for i in range(0, len(rows), _BATCH_SIZE):
+        batch = rows[i : i + _BATCH_SIZE]
+        try:
+            client.table("listings").upsert(batch, on_conflict="id").execute()
+            upserted += len(batch)
+        except Exception as e:
+            log.error(f"Supabase upsert failed for batch {i // _BATCH_SIZE}: {e}")
+
+    log.info(f"Supabase: {upserted}/{len(rows)} listings upserted")
+
+
 # ── MAIN ──────────────────────────────────────────────────────────────────────
 async def async_main():
     log.info("=" * 55)
@@ -660,6 +712,7 @@ async def async_main():
     log.info(f"Total unique: {len(all_listings)}")
     write_xlsx(all_listings)
     write_csv(all_listings)
+    write_supabase(all_listings)
     log.info("  FlatFinder — browser-use Scraper — DONE")
     log.info("=" * 55)
 
