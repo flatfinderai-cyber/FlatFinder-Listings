@@ -3,7 +3,7 @@ from datetime import date
 from typing import Optional, List, Any
 
 from pydantic import BaseModel
-from browser_use import Agent, Browser, BrowserConfig
+from browser_use import Agent, Browser
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
@@ -378,29 +378,27 @@ async def scrape_platform(platform: dict, llm) -> List[dict]:
     task = platform["task"]
     log.info(f"Starting {source}...")
 
-    # Fix: use BrowserConfig for headless + stealth to avoid bot detection.
-    # Fix: use output_model (not output_model_schema) — correct kwarg in browser-use ≥0.11.
-    # Fix: wrap agent.run() with a timeout and one retry.
+    # browser-use ≥0.12: BrowserConfig was replaced — pass headless/disable_security
+    # directly to Browser().  output_model was renamed output_model_schema.
+    # Wrap agent.run() with a timeout and one retry.
     for attempt in range(2):
         try:
             browser = Browser(
-                config=BrowserConfig(
-                    headless=True,
-                    disable_security=True,
-                )
+                headless=True,
+                disable_security=True,
             )
             agent = Agent(
                 task=task,
                 llm=llm,
                 browser=browser,
-                output_model=PlatformListings,
+                output_model_schema=PlatformListings,
             )
 
             try:
                 history = await asyncio.wait_for(agent.run(max_steps=30), timeout=300)
             except asyncio.TimeoutError:
                 log.warning(f"{source}: timed out (attempt {attempt + 1})")
-                await browser.close()
+                await browser.stop()
                 if attempt == 0:
                     continue
                 return []
@@ -414,13 +412,13 @@ async def scrape_platform(platform: dict, llm) -> List[dict]:
                     listings.append(normalized)
 
             log.info(f"{source}: {len(listings)} listings extracted")
-            await browser.close()
+            await browser.stop()
             return listings
 
         except Exception as e:
             log.error(f"{source} failed (attempt {attempt + 1}): {e}")
             try:
-                await browser.close()
+                await browser.stop()
             except Exception:
                 pass
             if attempt == 0:
