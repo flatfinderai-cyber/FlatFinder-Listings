@@ -145,12 +145,14 @@ def git(*args: str, capture: bool = True, cwd: str | None = None) -> tuple[int, 
 
 
 def short_id() -> str:
-    import hashlib, uuid
+    import hashlib
+    import uuid
     return hashlib.md5(uuid.uuid4().bytes).hexdigest()[:8]
 
 
 def now_slug() -> str:
-    return datetime.utcnow().strftime("%Y-%m-%d")
+    from datetime import timezone
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
 
 def fmt_cost(usd: float) -> str:
@@ -485,8 +487,8 @@ def wait_for_pr_checks(
 
         # Waiting for checks to appear
         if total == 0 and not no_checks:
-            waiting_elapsed = max_wait - (deadline - time.time())
-            if waiting_elapsed > 180:
+            elapsed = time.time() - (deadline - max_wait)
+            if elapsed > 180:
                 print(f"   ⚠️  {label} No checks after 3 min, proceeding", file=sys.stderr)
                 return True
             time.sleep(poll)

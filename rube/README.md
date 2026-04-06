@@ -85,6 +85,12 @@ sequenceDiagram
 ### Install
 
 ```bash
+# Option 1: review the script first (recommended)
+curl -fsSL https://raw.githubusercontent.com/flatfinderai-cyber/rube-works/main/rube/install.sh -o install-rube.sh
+# review install-rube.sh, then:
+bash install-rube.sh
+
+# Option 2: one-liner
 curl -fsSL https://raw.githubusercontent.com/flatfinderai-cyber/rube-works/main/rube/install.sh | bash
 ```
 
