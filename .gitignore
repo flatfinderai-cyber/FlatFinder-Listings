@@ -1,0 +1,61 @@
+# ============================================================
+# FlatFinder™ — .gitignore
+# © 2025–2026 Lila Alexandra Olufemi Inglis Abegunrin
+# FlatFinder: Housing Revolutionised Inc.
+# NEVER COMMIT SECRETS OR TRADE SECRETS
+# ============================================================
+
+# ── ENVIRONMENT & SECRETS ────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+*.key
+secrets/
+
+# ── TRADE SECRETS — NEVER IN REPO ────────────────────────────
+# Benny system prompt
+prompts/
+*.prompt
+system-prompts/
+benny-config/
+
+# Anti-Gatekeeping Algorithm implementation
+algorithms/internal/
+src/core/algorithm/
+
+# ── SUPABASE LOCAL ───────────────────────────────────────────
+.supabase/
+
+# ── BUILD ARTIFACTS ──────────────────────────────────────────
+.next/
+.vercel/
+dist/
+build/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.eggs/
+*.egg
+
+# ── SCRAPER OUTPUT (large binary/data files) ─────────────────
+flatfinder_toronto.xlsx
+flatfinder_toronto_latest.csv
+*.xlsx
+*.csv
+
+# ── EDITOR & OS ──────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── PLAYWRIGHT ───────────────────────────────────────────────
+playwright-report/
+test-results/

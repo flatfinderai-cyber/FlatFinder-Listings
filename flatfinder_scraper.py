@@ -1,3 +1,9 @@
+# flatfinder_scraper.py
+# Copyright © 2025–2026 Lila Alexandra Olufemi Inglis Abegunrin
+# FlatFinder: Housing Revolutionised Inc.
+# Patent Pending (CIPO) | Trademarks Pending (CIPO)
+# PROPRIETARY AND CONFIDENTIAL
+
 import os, re, csv, logging, hashlib, asyncio, json
 from datetime import date
 from typing import Optional, List, Any
