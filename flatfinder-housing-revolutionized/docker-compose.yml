@@ -1,0 +1,7 @@
+version: "3.8"
+
+services:
+  # Local development services will be configured here
+  # e.g., Supabase local, Redis, etc.
+  placeholder:
+    image: hello-world

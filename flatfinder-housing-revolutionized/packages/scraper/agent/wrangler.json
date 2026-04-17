@@ -1,0 +1,22 @@
+{
+  "name": "flatfinder-scraper-agent",
+  "main": "index.ts",
+  "compatibility_date": "2024-12-01",
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "ListingScraperAgent",
+        "class_name": "ListingScraperAgent"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["ListingScraperAgent"]
+    }
+  ],
+  "vars": {
+    "SCRAPER_SERVICE_URL": "http://localhost:8000"
+  }
+}
